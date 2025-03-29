@@ -1,10 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'ticket_confirmation_page.dart';
 import 'package:logging/logging.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -29,117 +28,122 @@ class CheckoutPage extends StatefulWidget {
 
 class _CheckoutPageState extends State<CheckoutPage> {
   final Logger _logger = Logger('CheckoutPage');
-  String paymentMethod = 'card'; // Default to card payment
-  final TextEditingController _cardNumberController = TextEditingController();
-  final TextEditingController _expiryDateController = TextEditingController();
-  final TextEditingController _cvvController = TextEditingController();
-  final TextEditingController _cardHolderController = TextEditingController();
+  String paymentMethod = 'paypal'; // Default to PayPal
   bool _isLoading = false;
   String _errorMessage = '';
 
   @override
-  void dispose() {
-    _cardNumberController.dispose();
-    _expiryDateController.dispose();
-    _cvvController.dispose();
-    _cardHolderController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    // Check login status when page loads
+    _checkLoginStatus();
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd/MM/yyyy').format(date);
-  }
-
-  String _formatTime(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
-  }
-
-  Future<void> _processPayment() async {
-    // Validate form fields
-    if (paymentMethod == 'card') {
-      if (_cardNumberController.text.isEmpty ||
-          _expiryDateController.text.isEmpty ||
-          _cvvController.text.isEmpty ||
-          _cardHolderController.text.isEmpty) {
-        setState(() {
-          _errorMessage = 'Tutti i campi sono obbligatori';
-        });
-        return;
-      }
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final userId = prefs.getInt('user_id');
+    final token = prefs.getString('token');
+    
+    // Use logger instead of print
+    _logger.info('isLoggedIn: $isLoggedIn');
+    _logger.info('userId: $userId');
+    _logger.info('token: $token');
+    
+    if (!isLoggedIn || userId == null || token == null) {
+      setState(() {
+        _errorMessage = 'Informazioni di login mancanti. Effettua nuovamente il login.';
+      });
     }
+  }
 
+  Future<void> _confirmPayment() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
-
+  
     try {
+      // Get user information from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('user_id');
       final token = prefs.getString('token');
-
-      if (token == null) {
+      
+      if (userId == null) {
         setState(() {
-          _errorMessage = 'Sessione scaduta. Effettua nuovamente il login.';
+          _errorMessage = 'Informazioni di login mancanti. Effettua nuovamente il login.';
           _isLoading = false;
         });
         return;
       }
-
-      // Formatta la data e l'ora per l'API
-      final dateFormat = DateFormat('yyyy-MM-dd');
-      final formattedDate = dateFormat.format(widget.visitDate);
-      final formattedTime = '${widget.visitTime.hour.toString().padLeft(2, '0')}:${widget.visitTime.minute.toString().padLeft(2, '0')}:00';
-
-      // Prepara i dati per l'acquisto
+  
+      // Format date and time for API
+      final formattedDate = "${widget.visitDate.year}-${widget.visitDate.month.toString().padLeft(2, '0')}-${widget.visitDate.day.toString().padLeft(2, '0')}";
+      final formattedTime = "${widget.visitTime.hour.toString().padLeft(2, '0')}:${widget.visitTime.minute.toString().padLeft(2, '0')}";
+  
+      // Prepare payment data
+      final Map<String, dynamic> paymentData = {
+        'user_id': userId,
+        'museum_id': widget.museum['id'],
+        'visit_date': formattedDate,
+        'visit_time': formattedTime,
+        'num_bambini': widget.tickets['child'] ?? 0,
+        'num_giovani': widget.tickets['youth'] ?? 0,
+        'num_adulti': widget.tickets['adult'] ?? 0,
+        'num_anziani': widget.tickets['senior'] ?? 0,
+        'prezzo_totale': widget.totalPrice,
+        'payment_method': paymentMethod,
+      };
+      
+      // Add token if available
+      if (token != null) {
+        paymentData['token'] = token;
+      }
+      
+      // Make API call
       final response = await http.post(
         Uri.parse('http://10.0.2.2/museo7/api/purchase_ticket.php'),
         headers: {
-          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
-        body: {
-          'id_museo': widget.museum['id'].toString(),
-          'data_visita': formattedDate,
-          'ora_visita': formattedTime,
-          'num_biglietti_bambini': widget.tickets['child'].toString(),
-          'num_biglietti_giovani': widget.tickets['youth'].toString(),
-          'num_biglietti_adulti': widget.tickets['adult'].toString(),
-          'num_biglietti_anziani': widget.tickets['senior'].toString(),
-          'prezzo_totale': widget.totalPrice.toString(),
-        },
+        body: jsonEncode(paymentData),
       );
-
-      final data = json.decode(response.body);
-      _logger.info('Payment response: $data');
-
-      if (data['success']) {
-        // Naviga alla pagina di conferma del biglietto
-        if (!mounted) return;
+      
+      // Check if response is valid JSON
+      if (response.body.isEmpty) {
+        throw Exception('Risposta vuota dal server');
+      }
+      
+      try {
+        final data = jsonDecode(response.body);
         
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TicketConfirmationPage(
-              ticketId: data['ticket']['id'],
-              museum: widget.museum,
-              visitDate: widget.visitDate,
-              visitTime: widget.visitTime,
-              tickets: widget.tickets,
-              totalPrice: widget.totalPrice,
+        if (data['success'] == true) {
+          // Payment successful
+          if (!mounted) return;
+          
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Acquisto completato con successo!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
             ),
-          ),
-        );
-      } else {
-        setState(() {
-          _errorMessage = data['message'] ?? 'Errore durante l\'acquisto del biglietto';
-          _isLoading = false;
-        });
+          );
+          
+          // Navigate to My Tickets page
+          Navigator.pushReplacementNamed(context, '/my_tickets');
+        } else {
+          setState(() {
+            _errorMessage = data['message'] ?? 'Errore durante il pagamento';
+            _isLoading = false;
+          });
+        }
+      } catch (e) {
+        throw Exception('Errore nel parsing della risposta JSON: ${e.toString()}. Risposta: ${response.body}');
       }
     } catch (e) {
-      _logger.severe('Error processing payment: $e');
       setState(() {
-        _errorMessage = 'Si è verificato un errore: $e';
+        _errorMessage = 'Si è verificato un errore: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -150,273 +154,137 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Checkout'),
-        backgroundColor: Colors.blue.shade800,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Order summary
-            Card(
-              elevation: 4,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Order summary
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Riepilogo Ordine',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),                            
+                            Text('Museo: ${widget.museum['nome'] ?? widget.museum['name'] ?? 'Sconosciuto'}'),
+                            Text('Data: ${DateFormat('dd/MM/yyyy').format(widget.visitDate)}'),
+                            Text('Ora: ${widget.visitTime.format(context)}'),
+                            const Divider(),
+                            if (widget.tickets['child']! > 0)
+                              Text('Bambini (${widget.tickets['child']}): €${(widget.tickets['child']! * widget.museum['childPrice']).toStringAsFixed(2)}'),
+                            if (widget.tickets['youth']! > 0)
+                              Text('Giovani (${widget.tickets['youth']}): €${(widget.tickets['youth']! * widget.museum['youthPrice']).toStringAsFixed(2)}'),
+                            if (widget.tickets['adult']! > 0)
+                              Text('Adulti (${widget.tickets['adult']}): €${(widget.tickets['adult']! * widget.museum['adultPrice']).toStringAsFixed(2)}'),
+                            if (widget.tickets['senior']! > 0)
+                              Text('Senior (${widget.tickets['senior']}): €${(widget.tickets['senior']! * widget.museum['seniorPrice']).toStringAsFixed(2)}'),
+                            const Divider(),
+                            Text(
+                              'Totale: €${widget.totalPrice.toStringAsFixed(2)}',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
                     const Text(
-                      'Riepilogo Ordine',
+                      'Metodo di Pagamento',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Museo: ${widget.museum['Nome']}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Data: ${_formatDate(widget.visitDate)}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Ora: ${_formatTime(widget.visitTime)}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 8),
                     
-                    // Ticket summary
-                    if (widget.tickets['child']! > 0)
-                      _buildTicketRow('Bambini', widget.tickets['child']!, widget.museum['childPrice'] ?? 0.0),
-                    if (widget.tickets['youth']! > 0)
-                      _buildTicketRow('Giovani', widget.tickets['youth']!, widget.museum['youthPrice'] ?? 0.0),
-                    if (widget.tickets['adult']! > 0)
-                      _buildTicketRow('Adulti', widget.tickets['adult']!, widget.museum['adultPrice'] ?? 0.0),
-                    if (widget.tickets['senior']! > 0)
-                      _buildTicketRow('Anziani', widget.tickets['senior']!, widget.museum['seniorPrice'] ?? 0.0),
+                    // Payment methods
+                    RadioListTile<String>(
+                      title: const Row(
+                        children: [
+                          Icon(Icons.credit_card),
+                          SizedBox(width: 8),
+                          Text('Carta di Credito/Debito'),
+                        ],
+                      ),
+                      value: 'card',
+                      groupValue: paymentMethod,
+                      onChanged: (value) {
+                        setState(() {
+                          paymentMethod = value!;
+                        });
+                      },
+                    ),
                     
-                    const SizedBox(height: 8),
-                    const Divider(),
-                    const SizedBox(height: 8),
+                    // Fix the non-const constructor
+                    RadioListTile<String>(
+                      title: Row(
+                        children: const [
+                          Icon(MdiIcons.creditCardOutline),
+                          SizedBox(width: 8),
+                          Text('PayPal'),
+                        ],
+                      ),
+                      value: 'paypal',
+                      groupValue: paymentMethod,
+                      onChanged: (value) {
+                        setState(() {
+                          paymentMethod = value!;
+                        });
+                      },
+                    ),
                     
-                    // Total
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Totale',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    // Payment info
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Verrai reindirizzato a ${paymentMethod == 'card' ? 'pagina di pagamento sicura' : 'PayPal'} per completare il pagamento dopo aver cliccato su "Conferma Pagamento".',
                         ),
-                        Text(
-                          '€${widget.totalPrice.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      ),
+                    ),
+                    
+                    if (_errorMessage.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(8),
+                        color: Colors.red[100],
+                        child: Text(
+                          'Si è verificato un errore: $_errorMessage',
+                          style: TextStyle(color: Colors.red[900]),
                         ),
-                      ],
+                      ),
+                    
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _confirmPayment,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text('Conferma Pagamento'),
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            
-            const SizedBox(height: 24),
-            
-            // Payment method selection
-            const Text(
-              'Metodo di Pagamento',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Credit card option
-            RadioListTile<String>(
-              title: const Row(
-                children: [
-                  Icon(MdiIcons.creditCard),
-                  SizedBox(width: 8),
-                  Text('Carta di Credito/Debito'),
-                ],
-              ),
-              value: 'card',
-              groupValue: paymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  paymentMethod = value!;
-                });
-              },
-            ),
-            
-            // PayPal option
-            RadioListTile<String>(
-              title: Row(
-                children: [
-                  Icon(MdiIcons.creditCardOutline), // Changed from MdiIcons.paypal to an available icon
-                  const SizedBox(width: 8),
-                  const Text('PayPal'),
-                ],
-              ),
-              value: 'paypal',
-              groupValue: paymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  paymentMethod = value!;
-                });
-              },
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Payment details form
-            if (paymentMethod == 'card')
-              Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Dettagli Carta',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Card number
-                      TextField(
-                        controller: _cardNumberController,
-                        decoration: const InputDecoration(
-                          labelText: 'Numero Carta',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(MdiIcons.creditCard),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Expiry date and CVV
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _expiryDateController,
-                              decoration: const InputDecoration(
-                                labelText: 'Data Scadenza (MM/YY)',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _cvvController,
-                              decoration: const InputDecoration(
-                                labelText: 'CVV',
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.number,
-                              obscureText: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Cardholder name
-                      TextField(
-                        controller: _cardHolderController,
-                        decoration: const InputDecoration(
-                          labelText: 'Titolare Carta',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(MdiIcons.account),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            
-            if (paymentMethod == 'paypal')
-              const Card(
-                elevation: 4,
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Verrai reindirizzato a PayPal per completare il pagamento dopo aver cliccato su "Conferma Pagamento".',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-            
-            const SizedBox(height: 24),
-            
-            // Error message
-            if (_errorMessage.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(8),
-                color: Colors.red.shade100,
-                width: double.infinity,
-                child: Text(
-                  _errorMessage,
-                  style: TextStyle(color: Colors.red.shade800),
-                ),
-              ),
-            
-            const SizedBox(height: 16),
-            
-            // Confirm payment button
-            ElevatedButton(
-              onPressed: _isLoading ? null : _processPayment,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade800,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'Conferma Pagamento',
-                      style: TextStyle(fontSize: 18),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTicketRow(String type, int count, double price) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            '$type ($count)',
-            style: const TextStyle(fontSize: 16),
-          ),
-          Text(
-            '€${(count * price).toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
     );
   }
 }
+
+// Remove the _processPayment function that was defined outside the class

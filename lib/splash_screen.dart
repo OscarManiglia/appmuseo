@@ -22,43 +22,43 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt('userId');
     final token = prefs.getString('token');
+    final userId = prefs.getInt('userId');
 
-    if (userId != null && token != null) {
+    if (token != null && userId != null) {
       try {
-        final response = await http.post(
-          Uri.parse('http://10.0.2.2/museo7/api/check_login.php'),
-          body: {
-            'user_id': userId.toString(),
-            'token': token,
+        // Verifica se il token è valido
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2/museo7/api/verify_token.php'),
+          headers: {
+            'Authorization': 'Bearer $token',
           },
         );
 
         final data = json.decode(response.body);
 
-        if (data['success'] && data['user']['logged']) {
-          // User is logged in, navigate to home page
+        if (data['success']) {
+          // Token valido, naviga alla home page
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomePage()),
           );
         } else {
-          // User is not logged in, navigate to login page
+          // Token non valido, naviga alla pagina di login
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const LoginPage()),
           );
         }
       } catch (e) {
-        // Error occurred, navigate to login page
+        // Errore, naviga alla pagina di login
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       }
     } else {
-      // No stored credentials, navigate to login page
+      // Nessuna credenziale memorizzata, naviga alla pagina di login
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginPage()),

@@ -4,18 +4,16 @@ import 'package:http/http.dart' as http;
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'dart:ui' as ui;
-import 'package:flutter/rendering.dart';
 import 'package:logging/logging.dart';
 
 class TicketConfirmationPage extends StatefulWidget {
-  final int ticketId;
+  final dynamic ticketId; // Change from String to dynamic to handle both int and String
   final Map<String, dynamic> museum;
   final DateTime visitDate;
   final TimeOfDay visitTime;
   final Map<String, int> tickets;
   final double totalPrice;
+  final String? qrData;
 
   const TicketConfirmationPage({
     super.key,
@@ -25,6 +23,7 @@ class TicketConfirmationPage extends StatefulWidget {
     required this.visitTime,
     required this.tickets,
     required this.totalPrice,
+    this.qrData,
   });
 
   @override
@@ -52,21 +51,25 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-
+  
       if (token == null) {
         _showErrorSnackBar('Sessione scaduta. Effettua nuovamente il login.');
         return;
       }
-
+  
+      // Convert ticketId to string to ensure it works in the URL
+      final ticketIdStr = widget.ticketId.toString();
+      
       final response = await http.get(
-        Uri.parse('http://10.0.2.2/museo7/api/generate_qr.php?ticket_id=${widget.ticketId}'),
+        Uri.parse('http://10.0.2.2/museo7/api/generate_qr.php?ticket_id=$ticketIdStr'),
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
-
+  
       final data = json.decode(response.body);
-
+  
+      // Rest of the method remains the same
       if (data['success']) {
         setState(() {
           qrData = data['qr_data'];
@@ -106,12 +109,6 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
-
-  // Remove these imports:
-  // import 'package:image_gallery_saver/image_gallery_saver.dart';
-  // import 'package:permission_handler/permission_handler.dart';
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -212,6 +209,24 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
                         style: TextStyle(
                           fontStyle: FontStyle.italic,
                           color: Colors.grey,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Back to home button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text('Torna alla Home'),
                         ),
                       ),
                     ],

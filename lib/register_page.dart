@@ -49,10 +49,10 @@ class _RegisterPageState extends State<RegisterPage> {
       final response = await http.post(
         Uri.parse('http://10.0.2.2/museo7/api/register.php'),
         body: {
-          'nome': _nameController.text,
-          'cognome': _surnameController.text,
-          'email': _emailController.text,
-          'telefono': _phoneController.text,
+          'nome': _nameController.text.trim(),
+          'cognome': _surnameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'telefono': _phoneController.text.trim(),
           'password': _passwordController.text,
         },
       );

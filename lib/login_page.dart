@@ -28,10 +28,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -48,13 +44,25 @@ class _LoginPageState extends State<LoginPage> {
 
       final data = json.decode(response.body);
 
-      if (data['success']) {
-        // Save user data and token
+      if (data['success'] == true) {
+        // Safely handle user data with null checks
+        final user = data['user'];
+        final userId = user['id'] as int?;
+        final nome = user['Nome'] as String? ?? '';
+        final cognome = user['Cognome'] as String? ?? '';
+        final email = user['Email'] as String? ?? '';
+        final token = data['token'] as String? ?? '';
+        
+        // Save user data to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
-        await prefs.setInt('userId', data['user']['id']);
-        await prefs.setString('userName', '${data['user']['Nome']} ${data['user']['Cognome']}');
-        await prefs.setString('userEmail', data['user']['Email']);
+        await prefs.setString('token', token);
+        
+        if (userId != null) {
+          await prefs.setInt('userId', userId);
+        }
+        
+        await prefs.setString('userName', '$nome $cognome'.trim());
+        await prefs.setString('userEmail', email);
 
         if (!mounted) return;
         
@@ -65,15 +73,13 @@ class _LoginPageState extends State<LoginPage> {
         );
       } else {
         setState(() {
-          _errorMessage = data['message'] ?? 'Login fallito. Riprova.';
+          _errorMessage = data['message'] as String? ?? 'Login fallito. Riprova.';
+          _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Errore di connessione. Riprova più tardi.';
-      });
-    } finally {
-      setState(() {
+        _errorMessage = 'Errore di connessione: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -93,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Logo or App name
-                  Icon(
+                  const Icon(
                     MdiIcons.bankOutline, // Changed from museum to bankOutline which is available
                     size: 80,
                     color: Colors.deepPurple,

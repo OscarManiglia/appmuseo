@@ -5,6 +5,15 @@ header('Access-Control-Allow-Methods: POST');
 
 include 'db_connect.php';
 
+// Check if database connection is established
+if (!isset($conn) || $conn === null) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Errore di connessione al database'
+    ]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get user data from request
     $nome = isset($_POST['nome']) ? $_POST['nome'] : '';
@@ -33,6 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Check if email already exists
     $stmt = $conn->prepare("SELECT id FROM utenti WHERE Email = ?");
+    if (!$stmt) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Errore di database: ' . $conn->error
+        ]);
+        exit;
+    }
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -42,11 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => false,
             'message' => 'Email già registrata'
         ]);
+        $stmt->close();
         exit;
     }
+    $stmt->close();
     
     // Check if phone already exists
     $stmt = $conn->prepare("SELECT id FROM utenti WHERE Telefono = ?");
+    if (!$stmt) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Errore di database: ' . $conn->error
+        ]);
+        exit;
+    }
     $stmt->bind_param("s", $telefono);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -56,14 +81,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'success' => false,
             'message' => 'Numero di telefono già registrato'
         ]);
+        $stmt->close();
         exit;
     }
+    $stmt->close();
     
     // Hash password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
     
     // Insert new user
     $stmt = $conn->prepare("INSERT INTO utenti (Nome, Cognome, Email, Telefono, Password) VALUES (?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Errore di database: ' . $conn->error
+        ]);
+        exit;
+    }
     $stmt->bind_param("sssss", $nome, $cognome, $email, $telefono, $hashed_password);
     
     if ($stmt->execute()) {
@@ -86,5 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ]);
 }
 
-$conn->close();
+if (isset($conn) && $conn !== null) {
+    $conn->close();
+}
 ?>

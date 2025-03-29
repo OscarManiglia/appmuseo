@@ -314,24 +314,29 @@ class _TicketPurchasePageState extends State<TicketPurchasePage> {
       return;
     }
   
-    // Create a map of ticket types and counts
-    final tickets = {
-      'child': childCount,
-      'youth': youthCount,
-      'adult': adultCount,
-      'senior': seniorCount,
-    };
+    // Remove this unused variable
+    // final tickets = {
+    //   'child': childCount,
+    //   'youth': youthCount,
+    //   'adult': adultCount,
+    //   'senior': seniorCount,
+    // };
   
-    // Navigate to checkout page
+    // Fix the navigation to CheckoutPage
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => CheckoutPage(
-          museum: widget.museum,
+          museum: widget.museum, // Use widget.museum instead of selectedMuseum
           visitDate: selectedDate,
           visitTime: selectedTime,
-          tickets: tickets,
-          totalPrice: totalPrice,
+          tickets: {
+            'child': childCount,
+            'youth': youthCount,
+            'adult': adultCount,
+            'senior': seniorCount,
+          },
+          totalPrice: totalPrice, // Use totalPrice getter instead of calculateTotal()
         ),
       ),
     );

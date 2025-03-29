@@ -1,47 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-class CustomNavbar extends StatefulWidget {
-  const CustomNavbar({super.key});
+class CustomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final Function(int) onItemTapped;
 
-  @override
-  State<CustomNavbar> createState() => _CustomNavbarState();
-}
-
-class _CustomNavbarState extends State<CustomNavbar> {
-  int _selectedIndex = 0;
+  const CustomNavBar({
+    Key? key,
+    required this.selectedIndex,
+    required this.onItemTapped,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: _selectedIndex,
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.ticketOutline),
-          label: 'Biglietti',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.creditCard),
-          label: 'Pagamenti',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.cog),
-          label: 'Impostazioni',
-        ),
-      ],
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.black,
-      onTap: (index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, -1),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.museum),
+            label: 'Musei',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.confirmation_number),
+            label: 'Biglietti',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profilo',
+          ),
+        ],
+        currentIndex: selectedIndex,
+        selectedItemColor: Colors.blue.shade800,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        onTap: onItemTapped,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
     );
   }
 }
