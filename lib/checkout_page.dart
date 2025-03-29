@@ -227,10 +227,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       },
                     ),
                     
-                    // Fix the non-const constructor
+                    // PayPal payment option
                     RadioListTile<String>(
-                      title: Row(
-                        children: const [
+                      title: const Row(
+                        children: [
                           Icon(MdiIcons.creditCardOutline),
                           SizedBox(width: 8),
                           Text('PayPal'),

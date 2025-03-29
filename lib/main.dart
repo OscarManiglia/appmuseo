@@ -4,7 +4,7 @@ import 'screens/tickets_screen.dart';
 import 'screens/profile_screen.dart';
 import 'login_page.dart';
 import 'register_page.dart';
-import 'home_page.dart'; // Aggiungi questo import
+import 'home_page.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/profile': (context) => const ProfileScreen(),
         '/tickets': (context) => const TicketsScreen(),
+        '/my_tickets': (context) => const TicketsScreen(),
       },
     );
   }
