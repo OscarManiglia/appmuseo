@@ -3,7 +3,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_page.dart';
+// Removed unused import: home_page.dart
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -48,39 +48,44 @@ class _LoginPageState extends State<LoginPage> {
         // Safely handle user data with null checks
         final user = data['user'];
         final userId = user['id'] as int?;
-        final nome = user['Nome'] as String? ?? '';
-        final cognome = user['Cognome'] as String? ?? '';
-        final email = user['Email'] as String? ?? '';
+        final nome = user['nome'] as String? ?? '';
+        final cognome = user['cognome'] as String? ?? '';
+        final email = user['email'] as String? ?? '';
         final token = data['token'] as String? ?? '';
         
-        // Save user data to SharedPreferences
+        // Salva i dati in modo coerente
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
         
+        // Salva l'ID utente con entrambe le chiavi per garantire compatibilità
         if (userId != null) {
+          await prefs.setInt('user_id', userId);
           await prefs.setInt('userId', userId);
         }
         
-        await prefs.setString('userName', '$nome $cognome'.trim());
-        await prefs.setString('userEmail', email);
-
-        if (!mounted) return;
+        // Salva il token
+        await prefs.setString('token', token);
         
-        // Navigate to home page and remove all previous routes
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomePage()),
-          (route) => false,
-        );
+        // Salva altri dati utente
+        await prefs.setString('nome', nome);
+        await prefs.setString('cognome', cognome);
+        await prefs.setString('email', email);
+        
+        // Imposta flag di login
+        await prefs.setBool('isLoggedIn', true);
+    
+        // Naviga alla home page
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         setState(() {
-          _errorMessage = data['message'] as String? ?? 'Login fallito. Riprova.';
           _isLoading = false;
+          _errorMessage = data['message'] ?? 'Errore durante il login';
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Errore di connessione: ${e.toString()}';
         _isLoading = false;
+        _errorMessage = 'Errore di connessione: ${e.toString()}';
       });
     }
   }

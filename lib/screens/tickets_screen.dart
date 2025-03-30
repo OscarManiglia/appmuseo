@@ -25,54 +25,8 @@ class _TicketsScreenState extends State<TicketsScreen> {
     _loadTickets();
   }
   
-  // Add the _fetchUserToken method inside the class
-  Future<void> _fetchUserToken(int userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('http://192.168.178.95/museo7/api/get_token.php?user_id=$userId'),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('Connessione al server scaduta. Riprova più tardi.');
-        },
-      );
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        
-        if (data['success'] == true && data['token'] != null) {
-          // Save token to SharedPreferences
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('token', data['token']);
-          
-          // Reload tickets with the new token
-          _loadTickets();
-        } else {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = data['message'] ?? 'Token di autorizzazione non trovato';
-          });
-        }
-      } else {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Errore del server: ${response.statusCode}';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        if (e is SocketException) {
-          _errorMessage = 'Impossibile connettersi al server. Verifica la tua connessione.';
-        } else if (e is TimeoutException) {
-          _errorMessage = e.message ?? 'Timeout della connessione';
-        } else {
-          _errorMessage = 'Errore: ${e.toString()}';
-        }
-      });
-    }
-  }
-  
+  // Remove the unused _fetchUserToken function that was declared around line 29
+
   Future<void> _loadTickets() async {
     setState(() {
       _isLoading = true;
@@ -81,8 +35,12 @@ class _TicketsScreenState extends State<TicketsScreen> {
     
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt('userId');
-      final token = prefs.getString('token'); // Get token from SharedPreferences
+      
+      // Replace the if statement with null-aware assignment
+      int? userId = prefs.getInt('user_id');
+      userId ??= prefs.getInt('userId');
+      
+      final token = prefs.getString('token');
       
       if (userId == null) {
         setState(() {
@@ -92,23 +50,14 @@ class _TicketsScreenState extends State<TicketsScreen> {
         return;
       }
       
-      if (token == null) {
-        // If token is missing, try to fetch it from the database
-        await _fetchUserToken(userId);
-        return;
-      }
-      
       // Use a more reliable URL format and add error handling
       final response = await http.get(
         Uri.parse('http://192.168.178.95/museo7/api/get_user_tickets.php?user_id=$userId'),
-        headers: {
-          'Authorization': 'Bearer $token', // Add token to headers
-        },
+        headers: token != null ? {'Authorization': 'Bearer $token'} : null,
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          // Fix TimeoutException usage
-          throw TimeoutException('Connessione al server scaduta. Riprova più tardi.');
+          throw Exception('Connessione al server scaduta. Riprova più tardi.');
         },
       );
       
