@@ -47,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2/museo7/api/register.php'),
+        Uri.parse('http://192.168.178.95/museo7/api/register.php'),
         body: {
           'nome': _nameController.text.trim(),
           'cognome': _surnameController.text.trim(),

@@ -102,7 +102,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       
       // Make API call
       final response = await http.post(
-        Uri.parse('http://10.0.2.2/museo7/api/purchase_ticket.php'),
+        Uri.parse('http://192.168.178.95/museo7/api/purchase_ticket.php'),
         headers: {
           'Content-Type': 'application/json',
         },

@@ -61,7 +61,7 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
       final ticketIdStr = widget.ticketId.toString();
       
       final response = await http.get(
-        Uri.parse('http://10.0.2.2/museo7/api/generate_qr.php?ticket_id=$ticketIdStr'),
+        Uri.parse('http://192.168.178.95/museo7/api/generate_qr.php?ticket_id=$ticketIdStr'),
         headers: {
           'Authorization': 'Bearer $token',
         },

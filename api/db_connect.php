@@ -1,6 +1,6 @@
 <?php
 // Database connection parameters
-$servername = "192.168.178.95";  // Cambiato da "localhost" all'IP del server
+$servername = "192.168.178.95";  
 $username = "root";  // Default XAMPP username
 $password = "";      // Default XAMPP password
 $dbname = "app_musei";

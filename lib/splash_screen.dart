@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
       try {
         // Verifica se il token è valido
         final response = await http.get(
-          Uri.parse('http://10.0.2.2/museo7/api/verify_token.php'),
+          Uri.parse('http://192.168.178.95/museo7/api/verify_token.php'),
           headers: {
             'Authorization': 'Bearer $token',
           },

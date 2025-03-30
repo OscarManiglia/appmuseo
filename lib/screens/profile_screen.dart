@@ -42,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       // Recupera i dati dell'utente direttamente dal server usando solo l'ID utente
       final response = await http.get(
-        Uri.parse('http://10.0.2.2/museo7/api/get_user_profile.php?user_id=$userId'),
+        Uri.parse('http://192.168.178.95/museo7/api/get_user_profile.php?user_id=$userId'),
       );
       
       print('Debug - API response: ${response.body}');
@@ -95,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (token != null) {
         // Chiamata API per il logout
         await http.post(
-          Uri.parse('http://10.0.2.2/museo7/api/logout.php'),
+          Uri.parse('http://192.168.178.95/museo7/api/logout.php'),
           headers: {
             'Authorization': 'Bearer $token',
           },

@@ -29,7 +29,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
   Future<void> _fetchUserToken(int userId) async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2/museo7/api/get_token.php?user_id=$userId'),
+        Uri.parse('http://192.168.178.95/museo7/api/get_token.php?user_id=$userId'),
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -100,7 +100,7 @@ class _TicketsScreenState extends State<TicketsScreen> {
       
       // Use a more reliable URL format and add error handling
       final response = await http.get(
-        Uri.parse('http://10.0.2.2/museo7/api/get_user_tickets.php?user_id=$userId'),
+        Uri.parse('http://192.168.178.95/museo7/api/get_user_tickets.php?user_id=$userId'),
         headers: {
           'Authorization': 'Bearer $token', // Add token to headers
         },

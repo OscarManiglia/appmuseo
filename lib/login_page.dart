@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2/museo7/api/login.php'),
+        Uri.parse('http://192.168.178.95/museo7/api/login.php'),
         body: {
           'email': _emailController.text,
           'password': _passwordController.text,
