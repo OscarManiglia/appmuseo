@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+// Add this import for DatabaseService
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -78,39 +79,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print('Debug - Exception: $e');
       setState(() {
         _errorMessage = 'Errore nel caricamento dei dati: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _logout() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-
-      if (token != null) {
-        // Chiamata API per il logout
-        await http.post(
-          Uri.parse('http://192.168.178.95/museo7/api/logout.php'),
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        );
-      }
-
-      // Rimuovi i dati locali
-      await prefs.clear();
-
-      if (!mounted) return;
-      // Reindirizza al login
-      Navigator.of(context).pushReplacementNamed('/login');
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Errore durante il logout: $e';
         _isLoading = false;
       });
     }
@@ -205,16 +173,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _logout,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            foregroundColor: Colors.white, // This sets the text color to white
-                          ),
-                          child: const Text(
-                            'Logout',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          onPressed: () async {
+                            try {
+                              final prefs = await SharedPreferences.getInstance();
+                              final userId = prefs.getInt('userId')?.toString();
+                              
+                              if (userId != null) {
+                                // Update logged status in database
+                                final response = await http.post(
+                                  Uri.parse('http://192.168.178.95/museo7/api/update_logged_status.php'),
+                                  body: {
+                                    'user_id': userId,
+                                    'logged': '0',  // 0 for False
+                                  },
+                                );
+                                
+                                // Check response for debugging
+                                print('Logout response: ${response.body}');
+                                
+                                // Verify if the update was successful
+                                final data = json.decode(response.body);
+                                if (data['success'] != true) {
+                                  throw Exception('Failed to update logged status: ${data['error']}');
+                                }
+                              }
+                              
+                              // Clear local storage
+                              await prefs.clear();
+                              
+                              // Add mounted check before using BuildContext
+                              if (!mounted) return;
+                              
+                              // Navigate to login screen
+                              Navigator.pushReplacementNamed(context, '/login');
+                            } catch (e) {
+                              print('Error during logout: $e');
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Errore durante il logout: $e')),
+                              );
+                            }
+                          },
+                          child: const Text('Logout'),
                         ),
                       ),
                     ],

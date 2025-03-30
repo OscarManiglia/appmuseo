@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 return const Icon(
                   Icons.museum,
                   size: 150,
-                  color: Colors.deepPurple,
+                  color: Color.fromARGB(255, 255, 0, 0),
                 );
               },
             ),
@@ -91,12 +91,12 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Color.fromARGB(255, 255, 0, 0),
               ),
             ),
             const SizedBox(height: 48),
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+              valueColor: AlwaysStoppedAnimation<Color>(Color.fromARGB(255, 255, 0, 0)),
             ),
           ],
         ),

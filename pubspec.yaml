@@ -1,5 +1,5 @@
-name: museo7
-description: "A new Flutter project."
+name: App_Musei
+description: "App per acquistare biglietti per musei."
 version: 1.0.0+1
 
 environment:
