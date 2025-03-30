@@ -61,24 +61,39 @@ class _MuseumDetailPageState extends State<MuseumDetailPage> {
         return;
       }
       
-      // Formatta l'URL in modo corretto - prova con un formato più semplice
-      final url = 'https://www.google.com/maps?q=${Uri.encodeComponent(coordinates)}';
-      _logger.info('Tentativo di aprire la mappa con URL: $url');
+      // Estrai latitudine e longitudine dalle coordinate
+      final List<String> parts = coordinates.split(',');
+      if (parts.length != 2) {
+        _logger.warning('Formato coordinate non valido: $coordinates');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Formato coordinate non valido')),
+        );
+        return;
+      }
       
-      // Verifica se l'URL può essere aperto
-      final Uri uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final String lat = parts[0].trim();
+      final String lng = parts[1].trim();
+      final String title = museumDetails['name'] ?? 'Museo';
+      
+      // Usa un formato URL che funziona meglio con le app di mappe
+      final Uri googleMapsUrl = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng'
+      );
+      
+      _logger.info('Tentativo di aprire la mappa con URL: $googleMapsUrl');
+      
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
       } else {
-        // Prova con un URL alternativo
-        final altUrl = 'geo:0,0?q=${Uri.encodeComponent(coordinates)}';
-        _logger.info('Tentativo con URL alternativo: $altUrl');
+        // Fallback se non può aprire Google Maps
+        final Uri geoUrl = Uri.parse('geo:$lat,$lng?q=${Uri.encodeComponent(title)}');
+        _logger.info('Tentativo con URL alternativo: $geoUrl');
         
-        final Uri altUri = Uri.parse(altUrl);
-        if (await canLaunchUrl(altUri)) {
-          await launchUrl(altUri);
+        if (await canLaunchUrl(geoUrl)) {
+          await launchUrl(geoUrl);
         } else {
-          _logger.severe("Impossibile aprire l'URL: $url e $altUrl");
+          _logger.severe("Impossibile aprire l'URL: $googleMapsUrl e $geoUrl");
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Impossibile aprire la mappa. Verifica che sia installata un\'app per le mappe.')),

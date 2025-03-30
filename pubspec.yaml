@@ -8,6 +8,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  url_launcher: ^6.1.10
+  google_maps_flutter: ^2.3.0
   cupertino_icons: ^1.0.2
   http: ^0.13.5
   shared_preferences: ^2.0.15
@@ -15,12 +17,24 @@ dependencies:
   logging: ^1.1.0
   material_design_icons_flutter: ^6.0.7096
   qr_flutter: ^4.0.0
-  url_launcher: ^6.1.10  # Add this line
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1  # Add this line
   flutter_lints: ^2.0.0
 
 flutter:
   uses-material-design: true
+
+# Add this configuration section
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/icon.png"  # Path to your icon file
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  web:
+    generate: false
+  windows:
+    generate: false
