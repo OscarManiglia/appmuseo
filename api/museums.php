@@ -3,10 +3,10 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 // Database connection
-$conn = new mysqli('localhost', 'root', '', 'app_musei');
+$conn = new mysqli('192.168.178.95', 'root', '', 'app_musei');
 
 if ($conn->connect_error) {
-    die(json_encode(['error' => 'Connection failed: ' . $conn->connect_error]));
+    die(json_encode(['success' => false, 'message' => 'Connection failed: ' . $conn->connect_error]));
 }
 
 $conn->set_charset('utf8');
@@ -21,6 +21,7 @@ if ($result->num_rows > 0) {
     }
 }
 
-echo json_encode($museums);
+// Modifica qui per standardizzare la risposta
+echo json_encode(['success' => true, 'museums' => $museums]);
 $conn->close();
 ?>

@@ -26,7 +26,7 @@ try {
     }
 
     $userId = intval($_GET['user_id']);
-
+    
     // Connect to database
     $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
@@ -34,54 +34,21 @@ try {
     if ($conn->connect_error) {
         throw new Exception("Connessione al database fallita: " . $conn->connect_error);
     }
-
-    // Verify token if provided in Authorization header
-    $headers = getallheaders();
-    if (isset($headers['Authorization'])) {
-        $authHeader = $headers['Authorization'];
-        $token = str_replace('Bearer ', '', $authHeader);
-
-        $stmt = $conn->prepare("SELECT id_utente, scadenza FROM tokens WHERE token = ? AND id_utente = ?");
-        if (!$stmt) {
-            throw new Exception("Errore nella preparazione della query token: " . $conn->error);
-        }
-
-        $stmt->bind_param("si", $token, $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows === 0) {
-            echo json_encode(['success' => false, 'message' => 'Token non valido o scaduto']);
-            exit;
-        }
-
-        $tokenData = $result->fetch_assoc();
-
-        // Check if token is expired
-        $now = new DateTime();
-        $expiry = new DateTime($tokenData['scadenza']);
-
-        if ($expiry < $now) {
-            echo json_encode(['success' => false, 'message' => 'Token scaduto. Effettua nuovamente il login.']);
-            exit;
-        }
-
-        $stmt->close();
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Token di autorizzazione mancante']);
-        exit;
-    }
-
-    // Get user tickets
-    $query = "SELECT b.*, m.nome as nome_museo 
-              FROM biglietti b 
-              JOIN musei m ON b.id_museo = m.id 
-              WHERE b.id_utente = ? 
-              ORDER BY b.data_visita DESC, b.ora_visita DESC";
     
+    // Get user tickets with correct column names
+    $query = "SELECT b.id, b.id_museo, b.data_visita, b.ora_visita, 
+                     b.num_biglietti_bambini, b.num_biglietti_giovani, 
+                     b.num_biglietti_adulti, b.num_biglietti_anziani, 
+                     b.prezzo_totale, b.data_acquisto, b.token, b.stato,
+                     m.nome as museum_name
+              FROM biglietti b
+              JOIN musei m ON b.id_museo = m.id
+              WHERE b.id_utente = ?
+              ORDER BY b.data_visita DESC, b.ora_visita ASC";
+              
     $stmt = $conn->prepare($query);
     if (!$stmt) {
-        throw new Exception("Errore nella preparazione della query biglietti: " . $conn->error);
+        throw new Exception("Errore nella preparazione della query: " . $conn->error);
     }
 
     $stmt->bind_param("i", $userId);
@@ -93,10 +60,17 @@ try {
         $tickets[] = $row;
     }
 
-    echo json_encode([
-        'success' => true,
-        'tickets' => $tickets
-    ]);
+    if (count($tickets) > 0) {
+        echo json_encode([
+            'success' => true,
+            'tickets' => $tickets
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Non hai ancora acquistato biglietti'
+        ]);
+    }
 
     $stmt->close();
     $conn->close();

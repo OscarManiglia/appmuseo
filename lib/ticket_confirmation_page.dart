@@ -219,7 +219,11 @@ class _TicketConfirmationPageState extends State<TicketConfirmationPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context).popUntil((route) => route.isFirst);
+                            // Navigate to home page
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/home', 
+                              (route) => false
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepPurple,

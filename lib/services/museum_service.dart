@@ -4,13 +4,23 @@ import 'package:logging/logging.dart';
 
 class MuseumService {
   final Logger _logger = Logger('MuseumService');
-  final String baseUrl = 'http://10.0.2.2/museo7/api';
+  // Modifica questa riga per usare l'indirizzo IP del tuo computer
+  final String baseUrl = 'http://192.168.178.95/museo7/api';
 
-  // Metodo per ottenere tutti i musei
+  // Modifica il tipo di ritorno da List<Museum> a List<Map<String, dynamic>>
   Future<List<Map<String, dynamic>>> fetchMuseums() async {
     try {
       _logger.info('Fetching museums from: $baseUrl/get_museums.php');
-      final response = await http.get(Uri.parse('$baseUrl/get_museums.php'));
+      
+      final response = await http.get(
+        Uri.parse('$baseUrl/get_museums.php'),
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          _logger.severe('Connection timeout');
+          throw Exception('Connection timeout');
+        },
+      );
       
       _logger.info('Response status code: ${response.statusCode}');
       _logger.info('Response body: ${response.body}');

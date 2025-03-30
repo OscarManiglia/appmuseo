@@ -130,8 +130,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           );
           
-          // Navigate to My Tickets page
-          Navigator.pushReplacementNamed(context, '/my_tickets');
+          // Navigate to Home screen and clear the navigation stack
+          Navigator.pushNamedAndRemoveUntil(
+            context, 
+            '/home', 
+            (route) => false, // This removes all previous routes
+          );
         } else {
           setState(() {
             _errorMessage = data['message'] ?? 'Errore durante il pagamento';
@@ -272,7 +276,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       child: ElevatedButton(
                         onPressed: _confirmPayment,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
+                          backgroundColor: const Color.fromARGB(255, 0, 174, 0),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
@@ -287,4 +291,3 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 }
 
-// Remove the _processPayment function that was defined outside the class

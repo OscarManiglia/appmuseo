@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
+// Import the tickets screen
 import 'screens/tickets_screen.dart';
 import 'screens/profile_screen.dart';
 import 'login_page.dart';
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // In your MaterialApp widget, make sure you have this route defined:
     return MaterialApp(
       title: 'Museo App',
       theme: ThemeData(
@@ -28,7 +30,6 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/profile': (context) => const ProfileScreen(),
         '/tickets': (context) => const TicketsScreen(),
-        '/my_tickets': (context) => const TicketsScreen(),
       },
     );
   }

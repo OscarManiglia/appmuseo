@@ -81,7 +81,8 @@ class HomePageState extends State<HomePage> {
             : _selectedIndex == 1 
                 ? const Text('Biglietti')
                 : const Text('Profilo'),
-      ),
+        automaticallyImplyLeading: false, // This prevents the back button from appearing
+      ), // Added missing closing parenthesis and comma here
       body: widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: CustomNavBar(
         selectedIndex: _selectedIndex,

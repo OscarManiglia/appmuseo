@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 // Connessione al database
-$servername = "localhost";
+$servername = "192.168.178.95";  // Cambiato da "localhost" all'IP del server
 $username = "root";
 $password = "";
 $dbname = "app_musei";

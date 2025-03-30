@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/ticket_service.dart';
-import 'ticket_display_screen.dart';
+import 'tickets_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final int userId;
@@ -52,9 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => TicketDisplayScreen(
-            ticketData: ticketResult,
-          ),
+          builder: (context) => const TicketsScreen(),
         ),
       );
     } else {

@@ -1,6 +1,6 @@
 <?php
 // Database configuration
-$db_host = 'localhost';
+$db_host = '192.168.178.95'; // Sostituisci con il tuo indirizzo IP
 $db_user = 'root';
 $db_pass = '';
 $db_name = 'app_musei';

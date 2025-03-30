@@ -8,7 +8,7 @@ class TicketService {
       int userId, int museumId, String ticketType, double price) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost/museo7/api/purchase_ticket.php'),
+        Uri.parse('http://192.168.178.95/museo7/api/purchase_ticket.php'),
         body: {
           'user_id': userId.toString(),
           'museum_id': museumId.toString(),
