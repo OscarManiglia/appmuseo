@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'custom_navbar.dart';
 import 'package:logging/logging.dart';
 import 'museum_detail_page.dart';
@@ -113,7 +114,7 @@ class HomePageState extends State<HomePage> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('🔄', style: TextStyle(fontSize: 24, color: Colors.black)),
+                          Icon(MdiIcons.refresh, color: Colors.black),
                           SizedBox(width: 8),
                           Text('Riprova', style: TextStyle(color: Colors.black)),
                         ],

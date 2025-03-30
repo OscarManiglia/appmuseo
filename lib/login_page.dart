@@ -3,7 +3,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-// Removed unused import: home_page.dart
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -107,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                   const Icon(
                     MdiIcons.bankOutline, // Changed from museum to bankOutline which is available
                     size: 80,
-                    color: Colors.deepPurple,
+                    color: Color.fromARGB(255, 255, 0, 0),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -116,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
+                      color: Color.fromARGB(255, 255, 0, 0),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -153,8 +152,17 @@ class _LoginPageState extends State<LoginPage> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Email',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.emailOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -174,8 +182,17 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: 'Password',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.lockOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -190,8 +207,8 @@ class _LoginPageState extends State<LoginPage> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      foregroundColor: Colors.white,
+                      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                      foregroundColor: const Color.fromARGB(255, 255, 255, 255),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -207,7 +224,10 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Non hai un account?'),
+                      const Text(
+                        'Non hai un account?', 
+                        style: TextStyle(color: Colors.black),
+                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -217,7 +237,16 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           );
                         },
-                        child: const Text('Registrati'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color.fromARGB(255, 255, 0, 0),
+                        ),
+                        child: const Text(
+                          'Registrati',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 255, 0, 0),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),

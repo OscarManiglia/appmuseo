@@ -153,8 +153,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _nameController,
                     decoration: const InputDecoration(
                       labelText: 'Nome',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.accountOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -170,8 +179,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _surnameController,
                     decoration: const InputDecoration(
                       labelText: 'Cognome',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.accountOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -188,8 +206,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Email',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.emailOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -209,8 +236,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       labelText: 'Telefono',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.phoneOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -230,8 +266,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: 'Password',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.lockOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -251,8 +296,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: 'Conferma Password',
+                      labelStyle: TextStyle(color: Colors.black),
                       prefixIcon: Icon(MdiIcons.lockOutline),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -270,7 +324,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
+                      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -292,7 +346,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text('Accedi'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color.fromARGB(255, 255, 0, 0),
+                        ),
+                        child: const Text(
+                          'Accedi',
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 255, 0, 0),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
